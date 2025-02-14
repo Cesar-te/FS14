@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rasca y Gana</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #fae1dd;
+            font-family:'Times New Roman', Times, serif;
+        }
+        .message {
+            position: absolute;
+            top: 100px;
+            font-size: 30px;
+            font-weight: bold;
+            color: #d85e82;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .card {
+            position: relative;
+            width: 450px;
+            height: 400px;
+            background-color: #ccc;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+        .image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('imagen/imagen1.jpeg'); /* Cambia esta URL por la imagen que quieras mostrar */
+            background-size: cover;
+            background-position: center;
+        }
+        .text-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            color: #fff;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            z-index: 5;
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="message">¡Feliz San Valentín!</div>
+    <div class="card">
+        <div class="image"></div>
+        <div class="text-overlay" id="textOverlay"></div>
+        <canvas id="scratch" width="500" height="400"></canvas>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('scratch');
+        const ctx = canvas.getContext('2d');
+        const textOverlay = document.getElementById('textOverlay');
+        let isScratching = false;
+
+        // Establecer el color gris sobre el lienzo
+        ctx.fillStyle = '#ccc';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Establecer la imagen sobre el lienzo
+        const image = new Image();
+        image.src = 'imagen/imagen1.jpeg';  // Cambia esta URL a la imagen que quieras mostrar
+
+        image.onload = () => {
+            ctx.globalCompositeOperation = 'destination-over';
+            ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+        };
+
+        // Dibujar el texto sobre el gris
+        function drawText() {
+            ctx.globalCompositeOperation = 'source-over'; // Asegurarse que el texto esté encima
+            ctx.font = '24px Times New Roman';
+            ctx.fillStyle = 'red';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText("Ráspame y ve la sorpresa", canvas.width / 2, canvas.height / 2);
+        }
+        drawText();
+
+        canvas.addEventListener('mousedown', startScratch);
+        canvas.addEventListener('mousemove', scratch);
+        canvas.addEventListener('mouseup', endScratch);
+        canvas.addEventListener('mouseleave', endScratch);
+
+        function startScratch(e) {
+            isScratching = true;
+            scratch(e);
+        }
+
+        function scratch(e) {
+            if (!isScratching) return;
+            const rect = canvas.getBoundingClientRect();
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.beginPath();
+            ctx.arc(e.clientX - rect.left, e.clientY - rect.top, 15, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Verificar si el texto sigue visible
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            let pixel = imageData.data;
+            let textCovered = true;
+
+            // Verificar si el texto sigue visible
+            for (let i = 0; i < pixel.length; i += 4) {
+                if (pixel[i] !== 204 || pixel[i + 1] !== 204 || pixel[i + 2] !== 204) {
+                    textCovered = false;
+                    break;
+                }
+            }
+
+            // Si ya no hay texto cubierto, quitar el overlay
+            if (textCovered) {
+                textOverlay.style.visibility = 'hidden';
+            }
+        }
+
+        function endScratch() {
+            isScratching = false;
+        }
+    </script>
+
+</body>
+</html>
